@@ -40,6 +40,7 @@
 #include <sys/statvfs.h>
 #include <sys/un.h>
 #include <sys/vfs.h>
+#include <sys/mman.h>
 #include <vector>
 #include <unistd.h>
 
@@ -902,4 +903,16 @@ sem_unlink(const char *name)
 	debug_sem("rewritten name: %s", rewritten);
 
 	return original_sem_unlink(rewritten);
+}
+
+extern "C" int
+shm_open(const char *name, int oflag, mode_t mode)
+{
+    return memfd_create("snapcraft-preload", MFD_CLOEXEC);
+}
+
+extern "C" int
+shm_unlink(const char *name)
+{
+    return 0;
 }
