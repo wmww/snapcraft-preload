@@ -1,6 +1,6 @@
 # -*- Mode: CMake; indent-tabs-mode: nil; tab-width: 4 -*-
 #
-# Copyright (C) 2015-2016 Canonical, Ltd.
+# Copyright (C) 2022 Canonical, Ltd.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,34 +15,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.2)
+project(anon-shm-preload)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
-set(SNAPCRAFT_PRELOAD "snapcraft-preload")
-set(LIBNAME "lib${SNAPCRAFT_PRELOAD}")
+set(ANON_SHM_PRELOAD "anon-shm-preload")
+set(LIBNAME "lib${ANON_SHM_PRELOAD}")
 set(LIBPATH "lib")
-add_library(${SNAPCRAFT_PRELOAD} SHARED preload.cpp)
+add_library(${ANON_SHM_PRELOAD} SHARED preload.cpp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-set_target_properties(${SNAPCRAFT_PRELOAD} PROPERTIES
-                      COMPILE_FLAGS "-DSNAPCRAFT_LIBNAME_DEF=\\\"${LIBNAME}.so\\\"")
-target_link_libraries(${SNAPCRAFT_PRELOAD} -ldl)
+configure_file(anon-shm-preload.in anon-shm-preload @ONLY)
 
-execute_process(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
-if(${ARCHITECTURE} STREQUAL "x86_64")
-    add_library("${SNAPCRAFT_PRELOAD}32" SHARED preload.cpp)
-    set_target_properties("${SNAPCRAFT_PRELOAD}32" PROPERTIES
-                          COMPILE_FLAGS "-DSNAPCRAFT_LIBNAME_DEF=\\\"${LIBNAME}32.so\\\" -m32")
-    target_link_libraries("${SNAPCRAFT_PRELOAD}32" -ldl -m32)
-endif()
-
-configure_file(snapcraft-preload.in snapcraft-preload @ONLY)
-
-install(TARGETS ${SNAPCRAFT_PRELOAD} LIBRARY DESTINATION ${LIBPATH})
-if (${ARCHITECTURE} STREQUAL "x86_64")
-    install(TARGETS ${SNAPCRAFT_PRELOAD}32 LIBRARY DESTINATION ${LIBPATH} OPTIONAL)
-endif()
-install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/snapcraft-preload DESTINATION bin)
+install(TARGETS ${ANON_SHM_PRELOAD} LIBRARY DESTINATION ${LIBPATH})
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/anon-shm-preload DESTINATION bin)
