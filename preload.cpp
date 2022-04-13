@@ -20,10 +20,12 @@
 #endif
 
 #include <sys/mman.h>
+#include <stdio.h>
 
 extern "C" int
 shm_open(const char *name, int oflag, mode_t mode)
 {
+    printf("v2 %s\n", name);
     return memfd_create("snapcraft-preload", MFD_CLOEXEC);
 }
 
